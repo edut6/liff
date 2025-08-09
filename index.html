@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi LIFF Saya</title>
+    <style>
+        body { font-family: sans-serif; padding: 15px; text-align: center; }
+        #profile-pic { border-radius: 50%; width: 100px; height: 100px; }
+        button { background-color: #00B900; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        #error-log { color: red; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>Selamat Datang di Aplikasi LIFF!</h1>
+    
+    <div id="user-info" style="display: none;">
+        <img id="profile-pic" src="" alt="Profile Picture">
+        <p>Halo, <strong id="display-name"></strong>!</p>
+        <p>User ID: <small id="user-id"></small></p>
+    </div>
+
+    <button id="send-message-btn" style="display: none;">Kirim Pesan ke Chat</button>
+    
+    <div id="status">Memuat...</div>
+    <div id="error-log"></div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <script>
+        // Fungsi utama untuk menjalankan logika LIFF
+        async function main() {
+            try {
+                // 2. Inisialisasi LIFF dengan LIFF ID Anda
+                // GANTI DENGAN LIFF ID ANDA YANG SEBENARNYA!
+                await liff.init({ liffId: "2006747340-AoraPvdD" }); 
+
+                document.getElementById('status').innerText = 'LIFF berhasil diinisialisasi.';
+
+                // 3. Cek apakah pengguna sudah login
+                if (!liff.isLoggedIn()) {
+                    document.getElementById('status').innerText = 'Silakan login untuk menggunakan aplikasi.';
+                    liff.login(); // Jika belum, arahkan ke halaman login LINE
+                    return;
+                }
+
+                // 4. Jika sudah login, dapatkan profil pengguna
+                const profile = await liff.getProfile();
+                
+                // Tampilkan informasi pengguna
+                document.getElementById('profile-pic').src = profile.pictureUrl;
+                document.getElementById('display-name').innerText = profile.displayName;
+                document.getElementById('user-id').innerText = profile.userId;
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('send-message-btn').style.display = 'block';
+
+                // Sembunyikan pesan status awal
+                document.getElementById('status').style.display = 'none';
+
+            } catch (error) {
+                // Tangani error
+                console.error(error);
+                document.getElementById('status').innerText = 'Gagal memuat aplikasi LIFF.';
+                document.getElementById('error-log').innerText = `Error: ${error.message}`;
+            }
+        }
+
+        // Jalankan fungsi utama
+        main();
+
+        // 5. Tambahkan event listener untuk tombol kirim pesan
+        const sendMessageButton = document.getElementById('send-message-btn');
+        sendMessageButton.addEventListener('click', async () => {
+            if (!liff.isInClient()) {
+                alert('Tombol ini hanya berfungsi di dalam aplikasi LINE.');
+                return;
+            }
+
+            try {
+                // Kirim pesan ke chat tempat LIFF dibuka
+                await liff.sendMessages([
+                    {
+                        type: 'text',
+                        text: 'Halo! Pesan ini dikirim dari aplikasi LIFF.'
+                    }
+                ]);
+                alert('Pesan berhasil dikirim!');
+                liff.closeWindow(); // Tutup jendela LIFF setelah mengirim pesan
+            } catch (error) {
+                console.error(error);
+                alert(`Gagal mengirim pesan: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
